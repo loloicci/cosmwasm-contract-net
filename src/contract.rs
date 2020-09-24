@@ -4,7 +4,6 @@ use cosmwasm_std::{
 };
 use crate::msg::{QueryResponse, HandleMsg, InitMsg, QueryMsg};
 use crate::state::{config, config_read, State};
-use std::net::TcpStream;
 
 pub fn init<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
@@ -36,11 +35,8 @@ pub fn try_update<S: Storage, A: Api, Q: Querier>(
     _env: Env,
 ) -> StdResult<HandleResponse> {
     config(&mut deps.storage).update(|mut state| {
-        if let Ok(stream) = TcpStream::connect("0.0.0.0:8080") {
-            state.num = 1;
-        } else {
-            state.num = -1;
-        }
+        let res = ureq::get("https://cosmwasm.com/").call();
+        state.num = res.status() as i64;
         Ok(state)
     })?;
 
